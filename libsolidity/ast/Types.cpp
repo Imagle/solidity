@@ -1649,6 +1649,28 @@ bool ArrayType::operator==(Type const& _other) const
 	return isDynamicallySized() || length() == other.length();
 }
 
+bool ArrayType::equalsWithoutLocation(Type const& _other) const
+{
+	if (_other.category() != category())
+		return false;
+	ArrayType const& other = dynamic_cast<ArrayType const&>(_other);
+	if (
+		other.isPointer() != isPointer() ||
+		other.isByteArray() != isByteArray() ||
+		other.isString() != isString() ||
+		other.isDynamicallySized() != isDynamicallySized()
+	)
+		return false;
+	if (baseType()->category() == Type::Category::Array)
+	{
+		if (!baseType()->equalsWithoutLocation(*other.baseType()))
+			return false;
+	}
+	else if (*other.baseType() != *baseType())
+		return false;
+	return isDynamicallySized() || length() == other.length();
+}
+
 bool ArrayType::validForCalldata() const
 {
 	return unlimitedCalldataEncodedSize(true) <= numeric_limits<unsigned>::max();
@@ -1977,6 +1999,14 @@ bool StructType::operator==(Type const& _other) const
 		return false;
 	StructType const& other = dynamic_cast<StructType const&>(_other);
 	return ReferenceType::operator==(other) && other.m_struct == m_struct;
+}
+
+bool StructType::equalsWithoutLocation(Type const& _other) const
+{
+	if (_other.category() != category())
+		return false;
+	StructType const& other = dynamic_cast<StructType const&>(_other);
+	return other.isPointer() == isPointer() && other.m_struct == m_struct;
 }
 
 unsigned StructType::calldataEncodedSize(bool _padded) const
@@ -2873,6 +2903,25 @@ bool FunctionType::hasEqualParameterTypes(FunctionType const& _other) const
 		m_parameterTypes.cend(),
 		_other.m_parameterTypes.cbegin(),
 		[](TypePointer const& _a, TypePointer const& _b) -> bool { return *_a == *_b; }
+	);
+}
+
+bool FunctionType::hasEqualParameterTypesWithoutLocation(FunctionType const& _other) const
+{
+	if (m_parameterTypes.size() != _other.m_parameterTypes.size())
+		return false;
+	return equal(
+		m_parameterTypes.cbegin(),
+		m_parameterTypes.cend(),
+		_other.m_parameterTypes.cbegin(),
+		[](TypePointer const& _a, TypePointer const& _b) -> bool
+			{
+				if (_a->category() == Type::Category::Array ||
+					_a->category() == Type::Category::Struct
+				   )
+					return _a->equalsWithoutLocation(*_b);
+				return *_a == *_b;
+			}
 	);
 }
 

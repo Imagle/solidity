@@ -199,6 +199,7 @@ public:
 
 	virtual bool operator==(Type const& _other) const { return category() == _other.category(); }
 	virtual bool operator!=(Type const& _other) const { return !this->operator ==(_other); }
+	virtual bool equalsWithoutLocation(Type const&) const { solAssert(false, ""); return true; }
 
 	/// @returns number of bytes used by this type when encoded for CALL. If it is a dynamic type,
 	/// returns the size of the pointer (usually 32). Returns 0 if the type cannot be encoded
@@ -655,6 +656,7 @@ public:
 	virtual bool isExplicitlyConvertibleTo(Type const& _convertTo) const override;
 	virtual std::string richIdentifier() const override;
 	virtual bool operator==(const Type& _other) const override;
+	virtual bool equalsWithoutLocation(const Type& _other) const override;
 	virtual unsigned calldataEncodedSize(bool _padded) const override;
 	virtual bool isDynamicallySized() const override { return m_hasDynamicLength; }
 	virtual bool isDynamicallyEncoded() const override;
@@ -773,6 +775,7 @@ public:
 	virtual bool isImplicitlyConvertibleTo(const Type& _convertTo) const override;
 	virtual std::string richIdentifier() const override;
 	virtual bool operator==(Type const& _other) const override;
+	virtual bool equalsWithoutLocation(Type const& _other) const override;
 	virtual unsigned calldataEncodedSize(bool _padded) const override;
 	virtual bool isDynamicallyEncoded() const override;
 	u256 memorySize() const;
@@ -1047,6 +1050,8 @@ public:
 	bool canTakeArguments(TypePointers const& _arguments, TypePointer const& _selfType = TypePointer()) const;
 	/// @returns true if the types of parameters are equal (does not check return parameter types)
 	bool hasEqualParameterTypes(FunctionType const& _other) const;
+	/// @returns true if the types of parameters are equal without checking reference location and pointer (does not check return parameter types)
+	bool hasEqualParameterTypesWithoutLocation(FunctionType const& _other) const;
 	/// @returns true iff the return types are equal (does not check parameter types)
 	bool hasEqualReturnTypes(FunctionType const& _other) const;
 	/// @returns true iff the function type is equal to the given type, ignoring state mutability differences.

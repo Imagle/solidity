@@ -404,7 +404,7 @@ void TypeChecker::checkFunctionOverride(FunctionDefinition const& function, Func
 	FunctionType functionType(function);
 	FunctionType superType(super);
 
-	if (!functionType.hasEqualParameterTypes(superType))
+	if (!functionType.hasEqualParameterTypesWithoutLocation(superType))
 		return;
 
 	if (!function.annotation().superFunction)
@@ -475,7 +475,7 @@ void TypeChecker::checkContractExternalTypeClashes(ContractDefinition const& _co
 	for (auto const& it: externalDeclarations)
 		for (size_t i = 0; i < it.second.size(); ++i)
 			for (size_t j = i + 1; j < it.second.size(); ++j)
-				if (!it.second[i].second->hasEqualParameterTypes(*it.second[j].second))
+				if (!it.second[i].second->hasEqualParameterTypesWithoutLocation(*it.second[j].second))
 					m_errorReporter.typeError(
 						it.second[j].first->location(),
 						"Function overload clash during conversion to external types for arguments."
